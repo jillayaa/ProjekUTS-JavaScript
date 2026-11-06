@@ -8,10 +8,11 @@ const {
 } = require('./src/config/database');
 
 const testRoutes = require('./src/routes/test');
-
+const authRoutes = require('./src/routes/authRoutes');
 const kebayaRoutes = require('./src/routes/kebayaRoutes');
 const pelangganRoutes = require('./src/routes/pelangganRoutes');
 const penyewaanRoutes = require('./src/routes/penyewaanRoutes');
+const laporanRoutes = require('./src/routes/laporanRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,12 +29,19 @@ app.get('/', (req, res) => {
     message: 'Sistem Informasi Penyewaan Kebaya API',
 
     endpoints: {
+
+      auth: {
+        'POST /api/auth/register': 'Registrasi Customer',
+        'POST /api/auth/login': 'Login Owner, Admin, dan Customer',
+        'GET /api/auth/me': 'Mengambil informasi akun login'
+      },
+
       kebaya: {
-        'GET /api/kebaya': 'Mengambil semua kebaya',
+        'GET /api/kebaya': 'Mengambil semua data kebaya',
         'GET /api/kebaya/:id': 'Mengambil detail kebaya',
         'POST /api/kebaya': 'Menambahkan kebaya',
-        'PUT /api/kebaya/:id': 'Memperbarui kebaya',
-        'DELETE /api/kebaya/:id': 'Menghapus kebaya'
+        'PUT /api/kebaya/:id': 'Memperbarui data kebaya',
+        'DELETE /api/kebaya/:id': 'Menghapus data kebaya'
       },
 
       pelanggan: {
@@ -46,9 +54,25 @@ app.get('/', (req, res) => {
 
       penyewaan: {
         'GET /api/penyewaan': 'Mengambil semua penyewaan',
+        'GET /api/penyewaan/saya': 'Mengambil penyewaan milik Customer',
         'GET /api/penyewaan/:id': 'Mengambil detail penyewaan',
         'POST /api/penyewaan': 'Membuat transaksi penyewaan',
-        'PATCH /api/penyewaan/:id/status': 'Mengubah status penyewaan'
+
+        'POST /api/penyewaan/:id/bukti-bayar': 'Mengunggah bukti pembayaran',
+        'GET /api/penyewaan/:id/bukti-bayar/file': 'Melihat bukti pembayaran',
+
+        'PATCH /api/penyewaan/:id/verifikasi-pembayaran': 'Memverifikasi pembayaran',
+        'PATCH /api/penyewaan/:id/mulai': 'Memulai penyewaan',
+        'PATCH /api/penyewaan/:id/pengembalian': 'Mencatat pengembalian dan denda'
+      },
+
+      laporan: {
+        'GET /api/laporan/transaksi': 'Melihat laporan transaksi',
+        'GET /api/laporan/pendapatan': 'Melihat laporan pendapatan'
+      },
+
+      test: {
+        'GET /api/test': 'Menguji koneksi database'
       }
     }
   });
@@ -57,9 +81,15 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/test', testRoutes);
 
+app.use('/api/auth', authRoutes);
+
 app.use('/api/kebaya', kebayaRoutes);
+
 app.use('/api/pelanggan', pelangganRoutes);
+
 app.use('/api/penyewaan', penyewaanRoutes);
+
+app.use('/api/laporan', laporanRoutes);
 
 // 404
 app.use((req, res) => {

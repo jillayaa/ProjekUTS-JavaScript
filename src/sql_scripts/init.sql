@@ -53,6 +53,37 @@ CREATE TABLE IF NOT EXISTS penyewaan (
 
     catatan TEXT,
 
+    status_pembayaran TEXT NOT NULL DEFAULT 'belum_bayar'
+    CHECK (
+        status_pembayaran IN (
+            'belum_bayar',
+            'menunggu_verifikasi',
+            'terverifikasi',
+            'ditolak'
+        )
+    ),
+
+    bukti_bayar TEXT,
+
+    catatan_verifikasi TEXT,
+
+    verified_by INTEGER REFERENCES users(id),
+
+    verified_at DATETIME,
+
+    tanggal_pengembalian_aktual TEXT,
+
+    kondisi_pengembalian TEXT
+        CHECK (
+            kondisi_pengembalian IS NULL OR
+            kondisi_pengembalian IN ('baik', 'rusak')
+        ),
+
+    denda INTEGER NOT NULL DEFAULT 0
+        CHECK (denda >= 0),
+
+    catatan_pengembalian TEXT,
+
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
@@ -63,6 +94,39 @@ CREATE TABLE IF NOT EXISTS penyewaan (
         REFERENCES kebaya(id) ON DELETE RESTRICT,
 
     CHECK (tanggal_kembali >= tanggal_sewa)
+
+);
+
+-- Tabel Pelanggan
+CREATE TABLE IF NOT EXISTS pelanggan (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    user_id INTEGER UNIQUE,
+
+    nama TEXT NOT NULL,
+
+    no_hp TEXT NOT NULL,
+
+    alamat TEXT,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE SET NULL
+);
+
+-- Tabel Users
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL
+        CHECK (role IN ('owner', 'admin', 'customer')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabel untuk pengujian koneksi API

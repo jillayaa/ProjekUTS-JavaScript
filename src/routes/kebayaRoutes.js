@@ -3,14 +3,46 @@ const router = express.Router();
 
 const kebayaController = require('../controllers/kebayaController');
 
-router.get('/', kebayaController.getAllKebaya);
+const {
+  authenticateToken,
+  authorizeRoles
+} = require('../middlewares_helpers/authMiddleware');
 
-router.get('/:id', kebayaController.getKebayaById);
+// Semua aktor yang sudah login dapat melihat katalog
+router.get(
+  '/',
+  authenticateToken,
+  authorizeRoles('owner', 'admin', 'customer'),
+  kebayaController.getAllKebaya
+);
 
-router.post('/', kebayaController.createKebaya);
+router.get(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('owner', 'admin', 'customer'),
+  kebayaController.getKebayaById
+);
 
-router.put('/:id', kebayaController.updateKebaya);
+// Hanya Owner dan Admin yang mengelola kebaya
+router.post(
+  '/',
+  authenticateToken,
+  authorizeRoles('admin'),
+  kebayaController.createKebaya
+);
 
-router.delete('/:id', kebayaController.deleteKebaya);
+router.put(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('admin'),
+  kebayaController.updateKebaya
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('admin'),
+  kebayaController.deleteKebaya
+);
 
 module.exports = router;
