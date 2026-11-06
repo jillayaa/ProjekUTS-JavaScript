@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { getAllKebaya, createPenyewaan } from "../../services/api";
 import type { Kebaya } from "../../types/kebaya";
 
+import BackButton from "../../components/BackButton";
+
 export default function PesananPage() {
   const navigate = useNavigate();
 
@@ -89,6 +91,7 @@ export default function PesananPage() {
 
   return (
     <div className="feature-container">
+      <BackButton to="/customer" />
       <h1>Buat Pesanan Penyewaan</h1>
       <p>Pilih kebaya dan tentukan tanggal penyewaan.</p>
 

@@ -4,6 +4,8 @@ import { getLaporanPendapatan } from "../../services/api";
 
 import type { LaporanPendapatan } from "../../services/api";
 
+import BackButton from "../../components/BackButton";
+
 export default function LaporanPendapatanPage() {
   const [data, setData] = useState<LaporanPendapatan | null>(null);
 
@@ -45,6 +47,7 @@ export default function LaporanPendapatanPage() {
 
   return (
     <div className="feature-container">
+      <BackButton to="/owner" />
       <h1>Laporan Pendapatan</h1>
 
       <p>Ringkasan pendapatan usaha penyewaan kebaya.</p>

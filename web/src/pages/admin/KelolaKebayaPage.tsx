@@ -14,6 +14,8 @@ import type { Kebaya, KebayaForm, KondisiKebaya } from "../../types/kebaya";
 
 import "../../App.css";
 
+import BackButton from "../../components/BackButton";
+
 // Form kosong awal
 const initialForm: KebayaForm = {
   kode_kebaya: "",
@@ -137,35 +139,11 @@ function KelolaKebayaPage() {
 
   return (
     <div className="app">
-      {/* SIDEBAR */}
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-icon">SK</div>
-
-          <div>
-            <h2>SewaKebaya</h2>
-            <p>Management System</p>
-          </div>
-        </div>
-
-        <div className="sidebar-footer">
-          Sistem Informasi Penyewaan Kebaya
-          <small>Project PBAD 2026/2027</small>
-        </div>
-      </aside>
-
       {/* MAIN CONTENT */}
       <main className="main-content">
         <header className="topbar">
           <div>
-            <button
-              type="button"
-              className="button-secondary"
-              onClick={() => navigate(-1)}
-            >
-              ← Kembali
-            </button>
-
+            <BackButton to="/admin" />
             <h1>Data Kebaya</h1>
             <p>Kelola koleksi kebaya yang tersedia untuk disewakan.</p>
           </div>

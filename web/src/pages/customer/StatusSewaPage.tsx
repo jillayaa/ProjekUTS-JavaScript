@@ -4,6 +4,8 @@ import { getMyPenyewaan, uploadBuktiBayar } from "../../services/api";
 
 import type { Penyewaan } from "../../services/api";
 
+import BackButton from "../../components/BackButton";
+
 export default function StatusSewaPage() {
   const [data, setData] = useState<Penyewaan[]>([]);
 
@@ -88,6 +90,7 @@ export default function StatusSewaPage() {
 
   return (
     <div className="feature-container">
+      <BackButton to="/customer" />
       <h1>Status Penyewaan Saya</h1>
 
       <p>Pantau transaksi dan status pembayaran kebaya kamu.</p>

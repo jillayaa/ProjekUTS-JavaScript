@@ -4,6 +4,8 @@ import { getLaporanTransaksi } from "../../services/api";
 
 import type { Penyewaan } from "../../services/api";
 
+import BackButton from "../../components/BackButton";
+
 export default function LaporanTransaksiPage() {
   const [data, setData] = useState<Penyewaan[]>([]);
 
@@ -41,6 +43,7 @@ export default function LaporanTransaksiPage() {
 
   return (
     <div className="feature-container">
+      <BackButton to="/owner" />
       <h1>Laporan Transaksi</h1>
 
       <p>Owner dapat memantau seluruh transaksi penyewaan.</p>
