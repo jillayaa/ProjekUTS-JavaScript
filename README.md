@@ -1,313 +1,452 @@
-# Product API
+# Sistem Informasi Penyewaan Kebaya
 
-REST API sederhana untuk mengelola data produk menggunakan **Node.js**, **Express.js**, dan **SQLite3**. Project ini dibuat untuk mempelajari konsep dasar REST API, pemisahan tanggung jawab antara routes, controllers, dan models, serta penggunaan database SQLite.
+Aplikasi web untuk mengelola proses penyewaan kebaya, mulai dari
+pengelolaan koleksi kebaya, data pelanggan, transaksi penyewaan,
+pembayaran, pengembalian, hingga laporan. Proyek ini memisahkan
+**backend (Server API)** dan **frontend (Web)** dalam satu repository.
 
-## Fitur
+## Daftar Isi
 
-- Mengambil semua produk.
-- Mengambil detail produk berdasarkan ID.
-- Menambahkan satu produk.
-- Menambahkan banyak produk sekaligus (*bulk insert*).
-- Memperbarui data produk.
-- Menghapus produk.
-- Membuat tabel database secara otomatis saat server dijalankan.
+1.  [Gambaran Umum](#gambaran-umum)
+2.  [Teknologi](#teknologi)
+3.  [Struktur Proyek](#struktur-proyek)
+4.  [Fitur Aplikasi](#fitur-aplikasi)
+5.  [Role Pengguna](#role-pengguna)
+6.  [Endpoint Server API](#endpoint-server-api)
+7.  [Persyaratan](#persyaratan)
+8.  [Instalasi dan Menjalankan
+    Proyek](#instalasi-dan-menjalankan-proyek)
+9.  [Konfigurasi Frontend dan
+    Backend](#konfigurasi-frontend-dan-backend)
+10. [Database dan File Upload](#database-dan-file-upload)
+
+---
+
+## Gambaran Umum
+
+**SewaKebaya Management System** merupakan aplikasi untuk membantu
+pengelolaan usaha penyewaan kebaya secara terkomputerisasi.
+
+Aplikasi terdiri dari dua bagian:
+
+- **Server API** menangani autentikasi, akses database, pengelolaan
+  data, transaksi, pembayaran, pengembalian, dan laporan.
+- **Web** menyediakan antarmuka bagi Owner, Admin, dan Customer sesuai
+  hak akses masing-masing.
+
+Frontend berkomunikasi dengan backend melalui endpoint REST API dengan
+prefix `/api`.
 
 ## Teknologi
 
-- [Node.js](https://nodejs.org/) — runtime JavaScript.
-- [Express.js](https://expressjs.com/) — framework untuk membuat REST API.
-- [SQLite3](https://www.npmjs.com/package/sqlite3) — database.
-- [dotenv](https://www.npmjs.com/package/dotenv) — membaca konfigurasi dari file `.env`.
-- [cors](https://www.npmjs.com/package/cors) — mengatur akses lintas origin.
+### Backend / Server API
 
-## Struktur Project
+- Node.js
+- Express.js
+- SQLite
+- `cors`
+- `dotenv`
+- Middleware autentikasi dan upload file
+
+### Frontend / Web
+
+- React
+- TypeScript
+- Vite
+- React Router DOM
+- CSS
+
+Versi pasti package mengikuti `package.json` pada direktori backend dan
+`web`.
+
+## Struktur Proyek
 
 ```text
-project/
-├── server.js
-├── database.sqlite
-├── .env
-├── package.json
-├── sql_scripts/
-│   └── init.sql
-└── src/
-    ├── config/
-    │   └── database.js
-    ├── controllers/
-    │   └── productController.js
-    ├── models/
-    │   └── productModel.js
-    ├── routes/
-    │   ├── productRoutes.js
-    │   └── test.js
-    └── middlewares_helpers/
-        └── sqlite3_helpers.js
+ProjekUTS-JavaScript/
+├── src/                         # Backend / Server API
+│   ├── config/
+│   │   └── database.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── kebayaController.js
+│   │   ├── laporanController.js
+│   │   ├── pelangganController.js
+│   │   ├── penyewaanController.js
+│   │   └── productController.js
+│   ├── middlewares_helpers/
+│   │   ├── authMiddleware.js
+│   │   ├── sqlite3_helpers.js
+│   │   └── uploadMiddleware.js
+│   ├── models/
+│   │   ├── authModel.js
+│   │   ├── kebayaModel.js
+│   │   ├── laporanModel.js
+│   │   ├── pelangganModel.js
+│   │   ├── penyewaanModel.js
+│   │   └── productModel.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── kebayaRoutes.js
+│   │   ├── laporanRoutes.js
+│   │   ├── pelangganRoutes.js
+│   │   ├── penyewaanRoutes.js
+│   │   ├── productRoutes.js
+│   │   └── test.js
+│   ├── script/
+│   │   └── createStaffUser.js
+│   └── sql_scripts/
+│       └── init.sql
+│
+├── uploads/                     # File unggahan, termasuk bukti pembayaran
+├── web/
+├── public/
+│   └── images/
+│       └── kebaya/
+│           ├── KB-0725.jpg
+│           ├── KB-001.jpg
+│           └── default-kebaya.jpg
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── auth/
+│   │   │   ├── AuthContext.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── components/
+│   │   │   ├── AppLayout.tsx
+│   │   │   ├── AppLayout.css
+│   │   │   ├── BackButton.tsx
+│   │   │   └── Navbar.tsx
+│   │   ├── pages/
+│   │   │   ├── admin/
+│   │   │   │   ├── KelolaKebayaPage.tsx
+│   │   │   │   ├── PengembalianPage.tsx
+│   │   │   │   └── VerifikasiPembayaranPage.tsx
+│   │   │   ├── customer/
+│   │   │   │   ├── PesananPage.tsx
+│   │   │   │   └── StatusSewaPage.tsx
+│   │   │   ├── owner/
+│   │   │   │   ├── LaporanPendapatanPage.tsx
+│   │   │   │   └── LaporanTransaksiPage.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── KatalogPage.tsx
+│   │   │   ├── LoginPage.tsx
+│   │   │   └── RegisterPage.tsx
+│   │   ├── services/
+│   │   │   └── api.ts
+│   │   ├── types/
+│   │   │   ├── kebaya.ts
+│   │   │   └── user.ts
+│   │   ├── App.tsx
+│   │   ├── App.css
+│   │   ├── Auth.css
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vite.config.ts
+│
+├── server.js                    # Entry point backend
+├── package.json                 # Dependencies backend
+├── package-lock.json
+├── database.sqlite              # Database SQLite lokal (jika sudah dibuat)
+├── .env                         # Konfigurasi lingkungan lokal
+└── README.md
 ```
 
-**Catatan:** `database.sqlite` akan dibuat secara otomatis jika belum tersedia, bergantung pada konfigurasi koneksi database. Sesuaikan struktur di atas jika lokasi file di project berbeda.
+Struktur ini merangkum file dan folder yang terlihat selama pengerjaan.
+File dapat bertambah atau berubah mengikuti pengembangan berikutnya.
 
-## Instalasi
+## Fitur Aplikasi
 
-### 1. Clone atau download project
+### 1. Autentikasi dan Hak Akses
 
-Jika project sudah ada di komputer, buka terminal di folder project tersebut.
+- Login pengguna.
+- Registrasi Customer.
+- Mengambil informasi pengguna yang sedang login.
+- Mengarahkan pengguna ke dashboard berdasarkan role.
+- Membatasi akses halaman menggunakan `ProtectedRoute`.
 
-### 2. Install dependencies
+### 2. Pengelolaan Data Kebaya
+
+- Menampilkan koleksi kebaya.
+- Menambahkan, memperbarui, dan menghapus data kebaya.
+- Menyimpan kode kebaya, nama model, ukuran, warna, harga sewa per
+  hari, kondisi, dan keterangan.
+- Menampilkan ringkasan jumlah kebaya, kondisi baik, dan kebaya yang
+  perlu perawatan.
+
+### 3. Data Pelanggan
+
+- Mengambil dan mengelola data pelanggan melalui Server API.
+- Menyediakan endpoint untuk menambah, melihat, memperbarui, dan
+  menghapus data pelanggan.
+
+### 4. Transaksi Penyewaan
+
+- Membuat transaksi penyewaan.
+- Mengambil daftar dan detail transaksi.
+- Mengambil transaksi milik Customer yang sedang login.
+- Memeriksa jadwal agar tidak terjadi benturan tanggal.
+- Perhitungan harga dan durasi penyewaan dilakukan pada sisi server.
+
+### 5. Pembayaran
+
+- Customer mengunggah bukti pembayaran.
+- Admin memeriksa dan memverifikasi pembayaran.
+- File bukti pembayaran ditangani melalui middleware upload.
+
+### 6. Pengembalian dan Denda
+
+- Admin mencatat pengembalian kebaya.
+- Mengisi tanggal pengembalian aktual.
+- Memilih kondisi kebaya saat dikembalikan (baik atau rusak).
+- Menambahkan catatan pengembalian.
+- Server API memproses pengembalian dan mengembalikan informasi denda.
+
+### 7. Laporan
+
+- Laporan transaksi penyewaan.
+- Laporan pendapatan usaha.
+- Penyaringan laporan berdasarkan rentang tanggal melalui halaman
+  laporan.
+
+### 8. Navigasi dan Tampilan
+
+- Dashboard berdasarkan role.
+- Navigasi halaman menggunakan React Router.
+- Komponen `BackButton` untuk membantu pengguna kembali ke halaman
+  sebelumnya atau dashboard sesuai konfigurasi halaman.
+- Layout dan navigasi untuk Owner, Admin, dan Customer.
+
+## Role Pengguna
+
+---
+
+Role Akses utama
+
+---
+
+Owner Dashboard Owner, laporan transaksi,
+laporan pendapatan, dan akses
+pengelolaan yang diizinkan oleh
+route
+
+Admin Dashboard Admin, pengelolaan
+kebaya, verifikasi pembayaran,
+serta pengembalian dan denda
+
+Customer Dashboard Customer, katalog kebaya,
+pesanan, status penyewaan, dan
+proses terkait penyewaan
+
+---
+
+Hak akses akhir mengikuti konfigurasi `allowedRoles` pada route frontend
+dan middleware otorisasi backend.
+
+## Endpoint Server API
+
+Server berjalan secara default pada port `3000` atau port yang
+ditentukan melalui environment.
+
+### Root
+
+Method Endpoint Keterangan
+
+---
+
+GET `/` Informasi API dan daftar endpoint
+
+### Auth
+
+Method Endpoint Keterangan
+
+---
+
+POST `/api/auth/register` Registrasi Customer
+POST `/api/auth/login` Login Owner, Admin, dan Customer
+GET `/api/auth/me` Mengambil informasi akun yang sedang login
+
+### Kebaya
+
+Method Endpoint Keterangan
+
+---
+
+GET `/api/kebaya` Mengambil seluruh data kebaya
+GET `/api/kebaya/:id` Mengambil detail kebaya
+POST `/api/kebaya` Menambahkan kebaya
+PUT `/api/kebaya/:id` Memperbarui kebaya
+DELETE `/api/kebaya/:id` Menghapus kebaya
+
+### Pelanggan
+
+Method Endpoint Keterangan
+
+---
+
+GET `/api/pelanggan` Mengambil seluruh pelanggan
+GET `/api/pelanggan/:id` Mengambil detail pelanggan
+POST `/api/pelanggan` Menambahkan pelanggan
+PUT `/api/pelanggan/:id` Memperbarui pelanggan
+DELETE `/api/pelanggan/:id` Menghapus pelanggan
+
+### Penyewaan
+
+---
+
+Method Endpoint Keterangan
+
+---
+
+GET `/api/penyewaan` Mengambil seluruh data
+penyewaan
+
+GET `/api/penyewaan/saya` Mengambil penyewaan
+milik Customer
+
+GET `/api/penyewaan/:id` Mengambil detail
+penyewaan
+
+POST `/api/penyewaan` Membuat transaksi
+penyewaan
+
+POST `/api/penyewaan/:id/bukti-bayar` Mengunggah bukti
+pembayaran
+
+GET `/api/penyewaan/:id/bukti-bayar/file` Melihat file bukti
+pembayaran
+
+PATCH `/api/penyewaan/:id/verifikasi-pembayaran` Memverifikasi
+pembayaran
+
+PATCH `/api/penyewaan/:id/mulai` Memulai penyewaan
+
+PATCH `/api/penyewaan/:id/pengembalian` Mencatat pengembalian
+dan denda
+
+---
+
+### Laporan
+
+Method Endpoint Keterangan
+
+---
+
+GET `/api/laporan/transaksi` Mengambil laporan transaksi
+GET `/api/laporan/pendapatan` Mengambil laporan pendapatan
+
+### Test
+
+Method Endpoint Keterangan
+
+---
+
+GET `/api/test` Menguji koneksi database
+
+Daftar endpoint mengikuti route yang didaftarkan pada `server.js`.
+Detail parameter, format body, autentikasi, dan respons dapat diperiksa
+pada file route dan controller masing-masing.
+
+## Persyaratan
+
+- Node.js dan npm.
+- Git.
+- Editor kode seperti Visual Studio Code.
+
+## Instalasi dan Menjalankan Proyek
+
+Backend dan frontend dijalankan secara terpisah.
+
+### 1. Clone Repository
+
+```bash
+git clone <URL_REPOSITORY>
+cd ProjekUTS-JavaScript
+```
+
+### 2. Instalasi Backend
+
+Jalankan dari direktori utama proyek:
 
 ```bash
 npm install
 ```
 
-Jika dependencies belum tercantum di `package.json`, install paket yang dibutuhkan:
+Pastikan file `.env` lokal tersedia dan berisi konfigurasi yang sesuai
+dengan implementasi pada `src/config/database.js` serta `server.js`.
 
-```bash
-npm install express sqlite3 cors dotenv
-```
-
-### 3. Konfigurasi environment
-
-Buat file `.env` di root project:
-
-```env
-PORT=3000
-```
-
-### 4. Jalankan server
-
-Jika `package.json` sudah memiliki script `start`:
-
-```bash
-npm start
-```
-
-Atau jalankan langsung:
+Jalankan backend:
 
 ```bash
 node server.js
 ```
 
-Jika berhasil, server akan berjalan di:
+Jika berhasil, terminal menampilkan informasi bahwa Server API berjalan
+pada `http://localhost:3000` dan database berhasil diinisialisasi.
+
+### 3. Instalasi Frontend
+
+Buka terminal baru, lalu masuk ke folder web:
+
+```bash
+cd web
+npm install
+```
+
+Jalankan Vite:
+
+```bash
+npm run dev
+```
+
+Vite akan menampilkan alamat lokal frontend, umumnya:
 
 ```text
-http://localhost:3000
+http://localhost:5173
 ```
 
-Database dan tabel akan diinisialisasi ketika server dijalankan, sesuai konfigurasi `database.js`.
+Jika port tersebut sedang digunakan, Vite dapat memilih port lain.
+Gunakan alamat yang ditampilkan pada terminal.
 
-## Database
+### 4. Urutan Menjalankan
 
-Tabel `products` dibuat menggunakan file `sql_scripts/init.sql`.
+1.  Jalankan backend dengan `node server.js`.
+2.  Pastikan backend berhasil terhubung ke SQLite.
+3.  Jalankan frontend dari folder `web` dengan `npm run dev`.
+4.  Buka alamat frontend yang ditampilkan Vite pada browser.
+5.  Login menggunakan akun yang tersedia pada database.
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `id` | INTEGER | Primary key, bertambah otomatis |
-| `name` | TEXT | Nama produk, wajib diisi |
-| `price` | REAL | Harga produk, wajib diisi |
-| `stock` | INTEGER | Jumlah stok, default `0` |
-| `category` | TEXT | Kategori produk |
-| `description` | TEXT | Deskripsi produk |
-| `is_available` | INTEGER | Status ketersediaan, default `1` |
-| `created_at` | DATETIME | Waktu data dibuat |
-| `updated_at` | DATETIME | Waktu data diperbarui |
+## Konfigurasi Frontend dan Backend
 
-Database tidak harus berisi data awal. Produk dapat ditambahkan melalui endpoint API.
+File `web/vite.config.ts` menggunakan proxy agar request dengan prefix
+`/api` diteruskan ke backend:
 
-## API Endpoints
+```ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-Base URL:
-
-```text
-http://localhost:3000/api/products
-```
-
-| Method | Endpoint | Fungsi |
-|---|---|---|
-| GET | `/api/products` | Mengambil semua produk |
-| GET | `/api/products/:id` | Mengambil produk berdasarkan ID |
-| POST | `/api/products` | Menambahkan satu produk |
-| POST | `/api/products/bulk` | Menambahkan banyak produk sekaligus |
-| PUT | `/api/products/:id` | Memperbarui produk |
-| DELETE | `/api/products/:id` | Menghapus produk |
-
-### 1. Mengambil semua produk
-
-**Request**
-
-```http
-GET /api/products
-```
-
-### 2. Mengambil produk berdasarkan ID
-
-**Request**
-
-```http
-GET /api/products/1
-```
-
-### 3. Menambahkan satu produk
-
-**Request**
-
-```http
-POST /api/products
-Content-Type: application/json
-```
-
-**Body**
-
-```json
-{
-  "name": "Kopi Susu Gula Aren",
-  "price": 22000,
-  "stock": 50,
-  "category": "Minuman",
-  "description": "Kopi susu dengan gula aren asli",
-  "is_available": 1
-}
-```
-
-### 4. Menambahkan banyak produk sekaligus
-
-Endpoint bulk insert memungkinkan beberapa produk ditambahkan dalam satu request.
-
-**Request**
-
-```http
-POST /api/products/bulk
-Content-Type: application/json
-```
-
-**Body**
-
-```json
-{
-  "products": [
-    {
-      "name": "Kopi Susu Gula Aren",
-      "price": 22000,
-      "stock": 50,
-      "category": "Minuman",
-      "description": "Kopi susu dengan gula aren asli",
-      "is_available": 1
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
     },
-    {
-      "name": "Croissant Butter",
-      "price": 18000,
-      "stock": 30,
-      "category": "Makanan",
-      "description": "Croissant mentega homemade",
-      "is_available": 1
-    },
-    {
-      "name": "Air Mineral 600ml",
-      "price": 5000,
-      "stock": 100,
-      "category": "Minuman",
-      "description": "Air mineral botol",
-      "is_available": 1
-    }
-  ]
-}
+  },
+});
 ```
 
-Properti `products` harus berupa array yang tidak kosong. Setiap produk harus memiliki `name` dan `price` yang valid.
+Dengan konfigurasi tersebut, frontend dapat mengakses endpoint
+`/api/...` melalui server development Vite. Jika port backend berubah,
+sesuaikan nilai `target` pada `vite.config.ts`.
 
-Jika implementasi model menggunakan transaksi database, seluruh proses bulk insert akan di-*commit* ketika berhasil dan di-*rollback* ketika terjadi kegagalan.
+## Database dan File Upload
 
-### 5. Memperbarui produk
-
-**Request**
-
-```http
-PUT /api/products/1
-Content-Type: application/json
-```
-
-**Body**
-
-```json
-{
-  "name": "Kopi Susu Gula Aren Large",
-  "price": 25000,
-  "stock": 40
-}
-```
-
-### 6. Menghapus produk
-
-**Request**
-
-```http
-DELETE /api/products/1
-```
-
-## Contoh Respons API
-
-Format respons mengikuti implementasi controller yang digunakan.
-
-**Respons berhasil**
-
-```json
-{
-  "success": true,
-  "message": "Produk berhasil dibuat",
-  "data": {
-    "id": 1,
-    "name": "Kopi Susu Gula Aren",
-    "price": 22000
-  }
-}
-```
-
-**Respons gagal**
-
-```json
-{
-  "success": false,
-  "message": "Validasi gagal",
-  "error": "Nama produk wajib diisi"
-}
-```
-
-Data di atas hanya contoh format; isi respons aktual bergantung pada endpoint dan implementasi controller.
-
-## Alur Kerja Aplikasi
-
-```text
-Client
-  |
-  v
-Routes
-  |
-  v
-Controllers
-  |
-  v
-Models
-  |
-  v
-SQLite Helpers
-  |
-  v
-SQLite Database
-```
-
-Penjelasan singkat:
-
-- **Routes:** menentukan endpoint dan menghubungkannya ke controller.
-- **Controllers:** menangani request, validasi input, dan response.
-- **Models:** berisi operasi database untuk data produk.
-- **SQLite Helpers:** menyediakan fungsi reusable seperti `dbRun`, `dbGet`, dan `dbAll`.
-- **Database:** menyimpan data produk di SQLite.
-
-## Catatan Pengembangan
-
-- Gunakan parameter SQL (`?`) untuk menghindari penyusunan query dari input pengguna secara langsung.
-- Validasi input sebelum menyimpan data ke database.
-- Hindari mengunggah file `.env` atau database yang berisi data sensitif ke repository publik.
-- Pastikan file `sql_scripts/init.sql` dibaca dari lokasi yang benar oleh `database.js`.
-
-## Lisensi
-
-Project ini dibuat untuk keperluan pembelajaran dan dapat dikembangkan lebih lanjut sesuai kebutuhan.
+- Database menggunakan SQLite.
+- Inisialisasi database dijalankan melalui fungsi
+  `initializeDatabase()` sebelum server mulai menerima request.
+- File database lokal pada pengerjaan ini bernama `database.sqlite`.
+- Folder `uploads/` digunakan untuk menyimpan file yang diunggah,
+  termasuk bukti pembayaran.
